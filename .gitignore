@@ -1,2 +1,5 @@
 .vscode
 **/a.out
+*.wav
+*.aiff
+sf2float
