@@ -1,10 +1,11 @@
 CC = clang
-CFLAGS = -g -Wall -Werror -Wextra
-LIBS = -L./lib -lportsf -lm
+CFLAGS = -g -Wall -Werror -Wextra -I../libportsf
+LIBS = -L../libportsf -lportsf -lm
 SRC = ./src
-LIB = ./lib
-INCLUDE = ./include
 
 
 all:
 	$(CC) $(CFLAGS) $(SRC)/main.c $(LIBS)
+
+clean:
+	rm a.out

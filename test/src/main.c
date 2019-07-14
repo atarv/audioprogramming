@@ -1,6 +1,6 @@
 #include <math.h>
 #include <stdio.h>
-#include "../include/portsf.h"
+#include "../libportsf/portsf.h"
 
 enum
 {

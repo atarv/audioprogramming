@@ -1,10 +1,12 @@
 CC = clang
-CFLAGS = -g -Wall -Werror -Wextra -pedantic -I./include
-LIBS = -L./lib -lportsf -lm
+CFLAGS = -g -Wall -Werror -Wextra -pedantic -I./include -I../libportsf
+LIBS = -L../libportsf -lportsf -lm
 SRC = ./src
-LIB = ./lib
 INCLUDE = ./include
 
 
 all:
 	$(CC) $(CFLAGS) $(SRC)/sf2float.c $(SRC)/sfprop.c $(LIBS) -o sf2float
+
+clean:
+	rm sf2float
