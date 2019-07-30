@@ -111,8 +111,8 @@ int main(int argc, char const *argv[])
     }
     printf("Copying...\n");
 
-    // single-frame loop to do copy, report any errors
-    framesread = psf_sndReadFloatFrames(ifd, frame, 1);
+    // single block loop to do copy, report any errors
+    framesread = psf_sndReadFloatFrames(ifd, frame, BLOCK_SIZE);
     totalread = 0;
     int update_interval = 0;
     for (unsigned int n = 0; n < LOOP_COUNT; n++)
