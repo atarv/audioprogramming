@@ -2,4 +2,7 @@
 **/a.out
 *.wav
 *.aiff
-sf2float
+test/a.out
+sf2float/sf2float
+sfnorm/sfnorm
+sfgain/sfgain

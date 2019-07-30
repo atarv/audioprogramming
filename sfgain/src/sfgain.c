@@ -6,8 +6,6 @@
 #include <stdio.h>
 #include "portsf.h"
 
-#define BLOCK_SIZE 512
-
 enum
 {
     ARG_PROGNAME,
@@ -24,7 +22,6 @@ int main(int argc, char *argv[])
     int ifd = -1, ofd = -1; // input & output file descriptors
     int error = 0;
     psf_format outformat = PSF_FMT_UNKNOWN;
-    PSF_CHPEAK *peaks = NULL;
     float *frame = NULL;
 
     printf("sfgain: modify amplitude of a soundfile\n");
@@ -40,6 +37,11 @@ int main(int argc, char *argv[])
     if (gain_mod < 0.0 || isnan(gain_mod))
     {
         printf("Gain modifier must be a positive floating point number\n");
+        return EXIT_FAILURE;
+    }
+    else if (gain_mod == 1.0)
+    {
+        printf("Gain modifier has to differ from 1.0 to modify amplitude\n");
         return EXIT_FAILURE;
     }
 
@@ -84,15 +86,6 @@ int main(int argc, char *argv[])
         goto cleanup;
     }
 
-    // allocate space for PEAK info
-    peaks = malloc(props.chans * sizeof(PSF_CHPEAK));
-    if (peaks == NULL)
-    {
-        printf("No memory\n");
-        error++;
-        goto cleanup;
-    }
-
     printf("Processing...\n");
 
     frames_read = psf_sndReadFloatFrames(ifd, frame, 1);
@@ -131,8 +124,6 @@ cleanup:
         psf_sndClose(ofd);
     if (frame)
         free(frame);
-    if (peaks)
-        free(peaks);
     psf_finish();
     return error;
 }
