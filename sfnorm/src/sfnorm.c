@@ -33,6 +33,12 @@ double sample_peak(float *buf, size_t blocksize)
     return peak;
 }
 
+/* Converts floating point value to decibels */
+double float_to_db(float f)
+{
+    return 20.0 * log10(f);
+}
+
 int main(int argc, char *argv[])
 {
     PSF_PROPS props;
@@ -146,6 +152,7 @@ int main(int argc, char *argv[])
         printf("infile is silent. Outfile not created\n");
         goto cleanup;
     }
+    printf("Peak of input file at %.2fdB\nNormalizing to %.2fdB\n", float_to_db(inpeak), dbval);
 
     // Scale factor used to normalize
     scalefac = (float)(ampfac / inpeak);
