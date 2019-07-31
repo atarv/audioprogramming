@@ -1,6 +1,6 @@
+#include "../libportsf/portsf.h"
 #include <math.h>
 #include <stdio.h>
-#include "../libportsf/portsf.h"
 
 enum
 {
@@ -32,7 +32,8 @@ int main(int argc, char *argv[])
 
     if (sf < 0)
     {
-        printf("Error %d: unable to open soundfile %s\n", sf, argv[ARG_INPUT_FILE]);
+        printf("Error %d: unable to open soundfile %s\n", sf,
+               argv[ARG_INPUT_FILE]);
         return 1;
     }
 
@@ -57,7 +58,8 @@ int main(int argc, char *argv[])
         break;
     }
     printf("Sample type: %s", stype);
-    printf("Sample rate: %d\nNumber of channels: %d\n", props.srate, props.chans);
+    printf("Sample rate: %d\nNumber of channels: %d\n", props.srate,
+           props.chans);
 
     psf_finish();
     return 0;

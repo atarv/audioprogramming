@@ -6,8 +6,7 @@ void print_props(const PSF_PROPS *props)
     printf("Sample type: %s\n"
            "File format: %s\n"
            "Sample rate: %d\n"
-           "Channels: %d\n"
-           ,
+           "Channels: %d\n",
            sget_stype(props), sget_format(props), props->srate, props->chans);
 }
 

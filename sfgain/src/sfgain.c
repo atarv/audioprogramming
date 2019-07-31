@@ -1,10 +1,10 @@
 /**
  * Modifies amplitude of a sound file. Based on sf2float.
  */
-#include <stdlib.h>
+#include "portsf.h"
 #include <math.h>
 #include <stdio.h>
-#include "portsf.h"
+#include <stdlib.h>
 
 enum
 {
@@ -41,7 +41,8 @@ int main(int argc, char *argv[])
     }
     else if (gain_mod == 1.0)
     {
-        printf("Gain modifier has to differ from 1.0 to modify amplitude. Exiting...\n");
+        printf("Gain modifier has to differ from 1.0 to modify amplitude. "
+               "Exiting...\n");
         return EXIT_FAILURE;
     }
 

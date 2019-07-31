@@ -1,7 +1,7 @@
 // convert soundfile to floats
-#include <stdlib.h>
 #include "sfprop.h"
 #include <math.h>
+#include <stdlib.h>
 
 #define BLOCK_SIZE 512
 
@@ -14,10 +14,7 @@ enum
     ARG_NARGS
 };
 
-double float_to_db(float f)
-{
-    return 20.0 * log10(f);
-}
+double float_to_db(float f) { return 20.0 * log10(f); }
 
 int main(int argc, char const *argv[])
 {
@@ -34,13 +31,16 @@ int main(int argc, char const *argv[])
 
     if (argc < ARG_NARGS - 1)
     {
-        printf("Insufficient arguments\nUsage: sf2float infile outfile [loop_count]\n");
+        printf("Insufficient arguments\nUsage: sf2float infile outfile "
+               "[loop_count]\n");
         return EXIT_FAILURE;
     }
 
     // If user did not provide loop count, loop only once
-    const char *LOOP_COUNT_INPUT = (argc == ARG_NARGS) ?  argv[ARG_LOOP_COUNT] : "1";
-    const unsigned int LOOP_COUNT = (unsigned int)strtoul(LOOP_COUNT_INPUT, NULL, 10);
+    const char *LOOP_COUNT_INPUT =
+        (argc == ARG_NARGS) ? argv[ARG_LOOP_COUNT] : "1";
+    const unsigned int LOOP_COUNT =
+        (unsigned int)strtoul(LOOP_COUNT_INPUT, NULL, 10);
     if (!LOOP_COUNT)
     {
         printf("Loop count must be a positive non-zero integer\n");
