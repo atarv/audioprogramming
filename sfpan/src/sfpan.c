@@ -66,14 +66,14 @@ int main(int argc, char *argv[])
     size_t points_count = 0;
     BREAKPOINT *points = NULL;
 
-    printf("sfpan: pan a soundfile");
+    printf("sfpan: pan a soundfile\n");
 
     // Validate arguments
     if (argc < ARG_NARGS)
     {
         printf("Insufficient arguments\nUsage: sfpan infile outfile "
                "breakpointfile\nBreakpoint file contains time value value "
-               "pairs between -1.0 and 1.0 (inclusive)");
+               "pairs between -1.0 and 1.0 (inclusive)\n");
         return EXIT_FAILURE;
     }
 
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     outformat = psf_getFormatExt(argv[ARG_OUTFILE]);
     if (outformat == PSF_FMT_UNKNOWN)
     {
-        printf("Outfile name %s has unknown format\nUse any of .wav, .aiff",
+        printf("Outfile name %s has unknown format\nUse any of .wav, .aiff\n",
                argv[ARG_OUTFILE]);
         error++;
         goto cleanup;
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
         }
 
         total_read += frames_read;
-        if (update_interval++ % 2064 == 0)
+        if (update_interval++ % 1024 == 0)
             printf("%ld samples processed\r", total_read);
     }
 
@@ -218,6 +218,8 @@ cleanup:
         free(outframe);
     if (points)
         free(points);
+    if (fp)
+        fclose(fp);
     psf_finish();
     return error;
 }
