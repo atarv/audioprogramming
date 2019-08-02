@@ -95,7 +95,7 @@ bool in_range(const BREAKPOINT *points, double min_val, double max_val,
 double val_at_brktime(const BREAKPOINT *points, size_t npoints, double time)
 {
     BREAKPOINT left, right;
-    size_t i = 1;
+    static size_t i = 1;
     for (; i < npoints; i++) // Find breakpoints that surround time
     {
         if (time <= points[i].time)
@@ -116,4 +116,22 @@ double val_at_brktime(const BREAKPOINT *points, size_t npoints, double time)
     // Get value from span using linear interpolation
     const double fraction = (time - left.time) / width;
     return left.value + ((right.value - left.value) * fraction);
+}
+
+/*
+ * Get minimum and maximum value of breakpoints
+ */
+MINMAX_PAIR get_minmax(const BREAKPOINT *points, size_t size)
+{
+    if (!points)
+        return (MINMAX_PAIR){NAN, NAN};
+    double min = points[0].value;
+    double max = min;
+    for (size_t i = 1; i < size; i++)
+    {
+        double value = points[i].value;
+        min = value < min ? value : min;
+        max = value > max ? value : max;
+    }
+    return (MINMAX_PAIR){min, max};
 }

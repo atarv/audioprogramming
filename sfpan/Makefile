@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS =  -Wall -Werror -Wextra -pedantic -O3
+CFLAGS =  -g -Wall -Werror -Wextra -pedantic
 INCLUDES = -I./include -I../libportsf
 LIBS = -L../libportsf -lportsf -lm
 SRC = ./src
