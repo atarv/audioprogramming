@@ -1,4 +1,4 @@
-CC = clang
+CC = gcc
 CFLAGS =  -g -Wall -Werror -Wextra -pedantic
 INCLUDES = -I./include -I../libportsf
 LIBS = -L../libportsf -lportsf -lm
