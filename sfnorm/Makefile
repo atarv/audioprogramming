@@ -7,4 +7,4 @@ all:
 	$(CC) $(CFLAGS) $(SRC)/sfnorm.c $(LIBS) -o sfnorm
 
 clean:
-	rm sf2float
+	rm sfnorm

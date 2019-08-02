@@ -8,4 +8,4 @@ all:
 	$(CC) $(CFLAGS) $(SRC)/sfpan.c $(SRC)/breakpoints.c $(LIBS) $(INCLUDES) -o sfpan
 
 clean:
-	rm sf2float
+	rm sfpan

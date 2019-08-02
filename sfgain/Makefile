@@ -7,4 +7,4 @@ all:
 	$(CC) $(CFLAGS) $(SRC)/sfgain.c $(LIBS) -o sfgain
 
 clean:
-	rm sf2float
+	rm sfgain
