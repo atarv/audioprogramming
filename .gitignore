@@ -6,3 +6,5 @@ test/a.out
 sf2float/sf2float
 sfnorm/sfnorm
 sfgain/sfgain
+sfpan/sfpan
+*.brk
