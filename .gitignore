@@ -8,3 +8,4 @@ sfnorm/sfnorm
 sfgain/sfgain
 sfpan/sfpan
 *.brk
+sfenv/sfenv
