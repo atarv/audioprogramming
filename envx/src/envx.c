@@ -152,5 +152,5 @@ cleanup:
             printf("Error: failed to close output file%s\n", argv[ARG_OUTFILE]);
     if (inframe)
         free(inframe);
-    return 0;
+    return error;
 }
