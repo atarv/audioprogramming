@@ -96,6 +96,12 @@ int main(int argc, char *argv[])
         ++nbufs;
 
     outframe = malloc(NFRAMES * sizeof(float));
+    if (outframe == NULL)
+    {
+        pritnf("No memory\n");
+        error++;
+        goto cleanup;
+    }
 
     // Processing
     unsigned int nframes = NFRAMES; // Number of frames in buffer
