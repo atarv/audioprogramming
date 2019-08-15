@@ -10,3 +10,4 @@ sfpan/sfpan
 *.brk
 sfenv/sfenv
 sinetest/sinetest
+*.o
