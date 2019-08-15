@@ -9,5 +9,5 @@ sfgain/sfgain
 sfpan/sfpan
 *.brk
 sfenv/sfenv
-sinetest/sinetest
 *.o
+siggen/siggen
