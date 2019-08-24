@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     if (argc < ARG_NARGS)
     {
         printf("Error: insufficient arguments\nUsage: siggen outfile waveform"
-               " duration sample_rate frequency amplitude amp_brkfile\nWhere "
+               " duration sample_rate frequency amp_brkfile\nWhere "
                "waveform is one of:\n0 - sine\n1 - triangle\n2 - sawtooth "
                "(up)\n 3 - sawtooth (down)\n4 - square\n");
         return EXIT_FAILURE;
