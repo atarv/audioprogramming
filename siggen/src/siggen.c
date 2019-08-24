@@ -12,7 +12,7 @@ enum
     ARG_WAVEFORM,
     ARG_DURATION,
     ARG_SRATE,
-    ARG_FREQUENCY,
+    ARG_FREQ_BRKFILE,
     ARG_AMP_BRKFILE,
     ARG_NARGS
 };
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     if (argc < ARG_NARGS)
     {
         printf("Error: insufficient arguments\nUsage: siggen outfile waveform"
-               " duration sample_rate frequency amp_brkfile\nWhere "
+               " duration sample_rate freq_brkfile amp_brkfile\nWhere "
                "waveform is one of:\n0 - sine\n1 - triangle\n2 - sawtooth "
                "(up)\n 3 - sawtooth (down)\n4 - square\n");
         return EXIT_FAILURE;
@@ -97,10 +97,10 @@ int main(int argc, char *argv[])
         goto cleanup;
     }
 
-    double frequency = strtod(argv[ARG_FREQUENCY], NULL);
-    if (frequency <= 0.0 || errno != 0)
+    FILE *freq_file = fopen(argv[ARG_FREQ_BRKFILE], "r");
+    if (freq_file == NULL)
     {
-        printf("Error: frequency must be over 0.0, was %lf\n", frequency);
+        printf("Error: unable to read %s\n", argv[ARG_FREQ_BRKFILE]);
         error++;
         goto cleanup;
     }
@@ -112,25 +112,65 @@ int main(int argc, char *argv[])
         error++;
         goto cleanup;
     }
-    // Get breakpoint stream  from file
-    size_t amp_brk_size = 0;
-    BRKSTREAM *ampstream =
-        bps_newstream(amp_file, outprops.srate, &amp_brk_size);
-    if (amp_file)
-        if (fclose(amp_file))
-            printf("Error closing breaktpoint file %s\n",
-                   argv[ARG_AMP_BRKFILE]);
-    if (ampstream == NULL)
+
+    // Get frequency breakpoints from file
+    size_t freq_brk_size = 0;
+    BRKSTREAM *freq_stream =
+        bps_newstream(freq_file, outprops.srate, &freq_brk_size);
+    if (freq_file)
     {
+        if (fclose(freq_file))
+            printf("Error closing breaktpoint file %s\n",
+                   argv[ARG_FREQ_BRKFILE]);
+        else
+            freq_file = NULL;
+    }
+
+    if (freq_stream == NULL)
+    {
+        // Error message printed in bps_newstream()
         error++;
         goto cleanup;
     }
 
-    // Validate breakpoints
+    // Validate frequency breakpoints
+    MINMAX_PAIR freq_bounds =
+        get_minmax(freq_stream->points, freq_stream->npoints);
+    if (freq_bounds.min_val <= 0.0)
+    {
+        printf("Error: frequency breakpoint values must be positive, minimum "
+               "was %lf in file %s\n",
+               freq_bounds.min_val, argv[ARG_FREQ_BRKFILE]);
+        error++;
+        goto cleanup;
+    }
+
+    // Get amplitude breakpoint stream  from file
+    size_t amp_brk_size = 0;
+    BRKSTREAM *ampstream =
+        bps_newstream(amp_file, outprops.srate, &amp_brk_size);
+    if (amp_file)
+    {
+        if (fclose(amp_file))
+            printf("Error closing breaktpoint file %s\n",
+                   argv[ARG_AMP_BRKFILE]);
+        else
+            amp_file = NULL;
+    }
+
+    if (ampstream == NULL)
+    {
+        // Error message printed in bps_newstream()
+        error++;
+        goto cleanup;
+    }
+
+    // Validate amplitude breakpoints
     MINMAX_PAIR amp_bounds = get_minmax(ampstream->points, amp_brk_size);
     if (amp_bounds.max_val > 1.0 || amp_bounds.min_val < 0.0)
     {
-        printf("Error: amplitude values out of range in file %s\n",
+        printf("Error: amplitude values out of range in file %s\nAllowed "
+               "values [0.0... 1.0]\n",
                argv[ARG_AMP_BRKFILE]);
         error++;
         goto cleanup;
@@ -162,6 +202,7 @@ int main(int argc, char *argv[])
         for (unsigned int j = 0; j < nframes; j++)
         {
             double amplitude = bps_tick(ampstream);
+            double frequency = bps_tick(freq_stream);
             outframe[j] = (float)(amplitude * tick(osc, frequency));
         }
 
@@ -189,6 +230,12 @@ cleanup:
         bps_freepoints(ampstream);
         free(ampstream);
     }
+    if (amp_file)
+        if (fclose(amp_file))
+            printf("Error closing file %s\n", argv[ARG_AMP_BRKFILE]);
+    if (freq_file)
+        if (fclose(freq_file))
+            printf("Error closing file %s\n", argv[ARG_FREQ_BRKFILE]);
     psf_finish();
     return error;
 }

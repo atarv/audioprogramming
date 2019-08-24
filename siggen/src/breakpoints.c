@@ -63,6 +63,7 @@ BREAKPOINT *get_breakpoints(FILE *fp, size_t *psize)
             points = tmp;
         }
     }
+    printf("debug npoints: %ld\n", npoints); // DEBUG:
     if (npoints)
         *psize = npoints;
     return points;
@@ -159,7 +160,6 @@ BRKSTREAM *bps_newstream(FILE *file, size_t srate, size_t *size)
         return NULL;
     }
     stream->npoints = npoints;
-    printf("npoints %lu\n", npoints);
     if (stream->npoints < 2)
     {
         printf("Error: too few breakpoints in breakpoint file. Minimum 2 "
