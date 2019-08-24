@@ -117,15 +117,6 @@ int main(int argc, char *argv[])
     size_t freq_brk_size = 0;
     BRKSTREAM *freq_stream =
         bps_newstream(freq_file, outprops.srate, &freq_brk_size);
-    if (freq_file)
-    {
-        if (fclose(freq_file))
-            printf("Error closing breaktpoint file %s\n",
-                   argv[ARG_FREQ_BRKFILE]);
-        else
-            freq_file = NULL;
-    }
-
     if (freq_stream == NULL)
     {
         // Error message printed in bps_newstream()
@@ -149,15 +140,6 @@ int main(int argc, char *argv[])
     size_t amp_brk_size = 0;
     BRKSTREAM *ampstream =
         bps_newstream(amp_file, outprops.srate, &amp_brk_size);
-    if (amp_file)
-    {
-        if (fclose(amp_file))
-            printf("Error closing breaktpoint file %s\n",
-                   argv[ARG_AMP_BRKFILE]);
-        else
-            amp_file = NULL;
-    }
-
     if (ampstream == NULL)
     {
         // Error message printed in bps_newstream()
