@@ -63,7 +63,6 @@ BREAKPOINT *get_breakpoints(FILE *fp, size_t *psize)
             points = tmp;
         }
     }
-    printf("debug npoints: %ld\n", npoints); // DEBUG:
     if (npoints)
         *psize = npoints;
     return points;

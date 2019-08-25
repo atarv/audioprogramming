@@ -12,6 +12,7 @@ enum
     ARG_WAVEFORM,
     ARG_DURATION,
     ARG_SRATE,
+    ARG_CHANNELS,
     ARG_FREQ_BRKFILE,
     ARG_AMP_BRKFILE,
     ARG_NARGS
@@ -66,7 +67,14 @@ int main(int argc, char *argv[])
 
     tickfunc tick = tick_functions[waveform_type];
 
-    outprops.chans = 1;
+    outprops.chans = (int)strtol(argv[ARG_CHANNELS], NULL, 10);
+    if (outprops.chans < 1)
+    {
+        printf("Error: channel count must be positive, was %d\n",
+               outprops.chans);
+        error++;
+        goto cleanup;
+    }
     outprops.samptype = PSF_SAMP_IEEE_FLOAT;
     outprops.chformat = STDWAVE;
     outprops.format = PSF_STDWAVE;
@@ -162,12 +170,12 @@ int main(int argc, char *argv[])
 
     size_t outframes =
         (size_t)(duration * outprops.srate + 0.5);  // Number of output frames
-    size_t nbufs = outframes / NFRAMES;             // Number of buffers to fill
+    size_t nbufs = outframes / (NFRAMES);           // Number of buffers to fill
     size_t remainder = outframes - nbufs * NFRAMES; // Count of remaining frames
     if (remainder > 0)
         ++nbufs;
 
-    outframe = malloc(NFRAMES * sizeof(float));
+    outframe = malloc(outprops.chans * NFRAMES * sizeof(float));
     if (outframe == NULL)
     {
         printf("No memory\n");
@@ -176,20 +184,24 @@ int main(int argc, char *argv[])
     }
 
     // Processing
-    unsigned int nframes = NFRAMES; // Number of frames in buffer
+    unsigned int nframes =
+        outprops.chans * NFRAMES; // Number of frames in buffer
     for (size_t i = 0; i < nbufs; i++)
     {
         if (i == nbufs - 1) // make only remainder amount of samples on last run
             nframes = remainder;
-        for (unsigned int j = 0; j < nframes; j++)
+        for (unsigned int j = 0; j < nframes; j += outprops.chans)
         {
             double amplitude = bps_tick(ampstream);
             double frequency = bps_tick(freq_stream);
-            outframe[j] = (float)(amplitude * tick(osc, frequency));
+            float sample_value = (float)(amplitude * tick(osc, frequency));
+            for (unsigned chan = 0; chan < (unsigned)outprops.chans; chan++)
+                outframe[j + chan] = sample_value;
         }
 
-        int written_frames = psf_sndWriteFloatFrames(ofd, outframe, nframes);
-        if (written_frames != (int)nframes)
+        int written_frames =
+            psf_sndWriteFloatFrames(ofd, outframe, nframes / outprops.chans);
+        if (written_frames != (int)nframes / outprops.chans)
         {
             printf("Error writing to outfile\n");
             error++;
@@ -211,6 +223,11 @@ cleanup:
     {
         bps_freepoints(ampstream);
         free(ampstream);
+    }
+    if (freq_stream)
+    {
+        bps_freepoints(freq_stream);
+        free(freq_stream);
     }
     if (amp_file)
         if (fclose(amp_file))
