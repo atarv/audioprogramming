@@ -46,8 +46,6 @@ int main(int argc, char *argv[])
     printf("siggen: generate simple tones\n");
     int error = 0; // positive if errors present
     PSF_PROPS outprops;
-    OSCIL *osc = NULL;
-    float *outframe = NULL;
 
     // Convert and validate arguments
     if (argc < ARG_NARGS - 1)
@@ -187,7 +185,7 @@ int main(int argc, char *argv[])
         goto cleanup;
     }
 
-    osc = new_oscil(outprops.srate);
+    OSCIL *osc = new_oscil(outprops.srate);
 
     size_t outframes =
         (size_t)(duration * outprops.srate + 0.5);  // Number of output frames
@@ -196,7 +194,7 @@ int main(int argc, char *argv[])
     if (remainder > 0)
         ++nbufs;
 
-    outframe = malloc(outprops.chans * NFRAMES * sizeof(float));
+    float *outframe = malloc(outprops.chans * NFRAMES * sizeof(float));
     if (outframe == NULL)
     {
         printf("No memory\n");

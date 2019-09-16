@@ -11,3 +11,4 @@ sfpan/sfpan
 sfenv/sfenv
 *.o
 siggen/siggen
+oscgen/oscgen
