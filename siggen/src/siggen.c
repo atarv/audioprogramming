@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     {
         printf(
             "Error: insufficient arguments\nUsage: siggen outfile waveform"
-            " duration sample_rate freq_brkfile amp_brkfile "
+            " duration sample_rate channels freq_brkfile amp_brkfile "
             "[pwmod_brkfile]\nWhere waveform is one of:\n0 - sine\n1 - "
             "triangle\n2 - sawtooth (up)\n 3 - sawtooth (down)\n4 - "
             "square\n5 - square w/PWM\nIf 5 is chosen, pwmod must be given\n");
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
     outprops.srate = (int)strtol(argv[ARG_SRATE], NULL, 10);
     if (outprops.srate == 0 || errno != 0)
     {
-        printf("Error parsing sample rate argument (%d)\n", outprops.srate);
+        printf("Error parsing sample rate argument (%s)\n", argv[ARG_SRATE]);
         error++;
         goto cleanup;
     }

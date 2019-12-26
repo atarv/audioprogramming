@@ -4,7 +4,7 @@
     {                                                                          \
         if (freq_file == NULL)                                                 \
         {                                                                      \
-            printf("Error: unable to read %s\n", argv[ARG_FREQ_BRKFILE]);      \
+            printf("Error: unable to read %s\n", filename);      \
             error++;                                                           \
             goto cleanup;                                                      \
         }                                                                      \

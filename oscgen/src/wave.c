@@ -1,5 +1,5 @@
 #include "wave.h"
-#include <stdio.h> // DEBUG:
+#include <stdio.h>
 
 /*
  * Initialize an oscillator object
