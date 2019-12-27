@@ -1,6 +1,7 @@
 #include "breakpoints.h"
 #include "macros.h"
 #include "wave.h"
+#include <time.h>
 
 #define NFRAMES 1024
 
@@ -23,7 +24,8 @@ enum
     WAVE_SQUARE,
     WAVE_TRIANGLE,
     WAVE_SAW_DOWN,
-    WAVE_SAW_UP
+    WAVE_SAW_UP,
+    WAVE_NWAVEFORMS
 };
 
 int main(int argc, char const *argv[])
@@ -41,13 +43,6 @@ int main(int argc, char const *argv[])
                "waveform noscs\nwaveform:\t0 - square\n\t\t1 - "
                "triangle\n\t\t2 - saw (down)\n\t\t3 - saw (up)\n");
         return EXIT_FAILURE;
-    }
-
-    if (psf_init())
-    {
-        printf("Error: failed to initialize psf");
-        error++;
-        goto cleanup;
     }
 
     double duration = strtod(argv[ARG_DURATION], NULL);
@@ -87,11 +82,26 @@ int main(int argc, char const *argv[])
         printf("Error: frequency must be positive (was %lf)\n", frequency);
     }
 
+    int waveform = strtol(argv[ARG_WAVEFORM], NULL, 10);
+    if (waveform < 0 || waveform >= WAVE_NWAVEFORMS)
+    {
+        printf("Error: invalid oscillator type: %d\n", waveform);
+        return EXIT_FAILURE;
+    }
+
     size_t oscillator_count = strtoul(argv[ARG_NOSCS], NULL, 10);
     if (oscillator_count == 0)
     {
         printf("Error: number of oscillators must be positive (was %lu)\n",
                oscillator_count);
+        return EXIT_FAILURE;
+    }
+
+    if (psf_init())
+    {
+        printf("Error: failed to initialize psf");
+        error++;
+        goto cleanup;
     }
 
     outprops.samptype = PSF_SAMP_IEEE_FLOAT;
@@ -106,7 +116,7 @@ int main(int argc, char const *argv[])
         goto cleanup;
     }
 
-    // Reserve memory for oscillator bank
+    // Reserve memory for oscillators
     OSCIL **oscillators = malloc(oscillator_count * sizeof(OSCIL));
     ON_MALLOC_ERROR(oscillators);
 
@@ -116,25 +126,59 @@ int main(int argc, char const *argv[])
     double *osc_freqs = malloc(oscillator_count * sizeof(double));
     ON_MALLOC_ERROR(osc_freqs);
 
-    // Initialize oscillators
+    // Initialize oscillators according to waveform
+    double amp_factor = 1.0, freq_factor = 1.0, amp_adjust = 0.0, phase = 0.0;
+    switch (waveform)
+    {
+    case WAVE_SQUARE:
+        for (size_t i = 0; i < oscillator_count; i++)
+        {
+            amp_factor = 1.0 / freq_factor;
+            osc_amps[i] = amp_factor;
+            osc_freqs[i] = freq_factor;
+            freq_factor += 2.0; // Odd harmonics
+            amp_adjust += amp_factor;
+        }
+        break;
+    case WAVE_TRIANGLE:
+        for (size_t i = 0; i < oscillator_count; i++)
+        {
+            amp_factor = 1.0 / (freq_factor * freq_factor);
+            osc_amps[i] = amp_factor;
+            osc_freqs[i] = freq_factor;
+            freq_factor += 2.0; // Odd harmonics
+            amp_adjust += amp_factor;
+        }
+        phase = 0.25; // Set cos phase for true triangle shape
+        break;
+    case WAVE_SAW_UP:
+    case WAVE_SAW_DOWN:
+        for (size_t i = 0; i < oscillator_count; i++)
+        {
+            amp_factor = 1.0 / freq_factor;
+            osc_amps[i] = amp_factor;
+            osc_freqs[i] = freq_factor;
+            freq_factor += 1.0; // Even harmonics
+            amp_adjust += amp_factor;
+        }
+        if (waveform == WAVE_SAW_UP)
+            amp_adjust = -amp_adjust; // Inverts waveform
+        break;
+    }
+
     for (size_t i = 0; i < oscillator_count; i++)
     {
-        oscillators[i] = new_oscil(outprops.srate);
+        oscillators[i] = new_oscilp(outprops.srate, phase);
         ON_MALLOC_ERROR(oscillators[i]);
     }
 
-    // DEBUG:
-    printf("noscs: %ld, srate: %d, chans: %d, dur: %lf\n", oscillator_count,
-           outprops.srate, outprops.chans, duration);
+    // Rescale amplitudes to add up to 1.0
+    for (size_t i = 0; i < oscillator_count; i++)
+        osc_amps[i] /= amp_adjust;
 
     float *outframe =
         malloc((unsigned long)outprops.chans * NFRAMES * sizeof(float));
-    if (outframe == NULL)
-    {
-        printf("No memory\n");
-        error++;
-        goto cleanup;
-    }
+    ON_MALLOC_ERROR(outframe);
 
     size_t outframes =
         (size_t)(duration * outprops.srate + 0.5);  // Number of output frames
@@ -146,9 +190,7 @@ int main(int argc, char const *argv[])
     // Generate sound
     unsigned nframes =
         (unsigned)outprops.chans * NFRAMES; // Number of frames in buffer
-    // DEBUG: 
-    printf("outframes %lu, nbufs %lu, remainder %lu, nframes %u\n", outframes,
-           nbufs, remainder, nframes);
+    time_t starttime = clock();
     for (size_t i = 0; i < nbufs; i++)
     {
         if (i == nbufs - 1) // Make only remainder amount of samples on last run
@@ -162,13 +204,12 @@ int main(int argc, char const *argv[])
                        sinetick(oscillators[j], frequency * osc_freqs[j]);
             for (unsigned chan = 0; chan < (unsigned)outprops.chans; chan++)
             {
-                outframe[k + chan] = (float)val;
-                printf("k+ch: %u\n, val: %lf\n", k+chan, val); // DEBUG:
+                outframe[k + chan] = (float)(amplitude * val);
             }
         }
 
-        int written_frames =
-            psf_sndWriteFloatFrames(ofd, outframe, nframes / (unsigned)outprops.chans);
+        int written_frames = psf_sndWriteFloatFrames(
+            ofd, outframe, nframes / (unsigned)outprops.chans);
         if (written_frames != (int)nframes / outprops.chans)
         {
             printf("Error writing to outfile\n");
@@ -176,9 +217,9 @@ int main(int argc, char const *argv[])
             goto cleanup;
         }
     }
-
-    printf("Successfully wrote %lu frames to %s\n", outframes,
-           argv[ARG_OUTFILE]);
+    time_t endtime = clock();
+    printf("Successfully wrote %lu frames to %s in %.3f seconds\n", outframes,
+           argv[ARG_OUTFILE], (endtime - starttime) / (double)CLOCKS_PER_SEC);
 
 cleanup:
     if (ofd)

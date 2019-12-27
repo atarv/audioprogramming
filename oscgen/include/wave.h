@@ -15,8 +15,8 @@ typedef struct oscil_t
 typedef double (*tickfunc)(OSCIL *osc, double freq);
 typedef double (*pwmtickfunc)(OSCIL *osc, double freq, double pwmod);
 
-void oscil_init(OSCIL *osc, size_t sample_rate);
 OSCIL *new_oscil(size_t sample_rate);
+OSCIL *new_oscilp(size_t sample_rate, double phase);
 double sinetick(OSCIL *osc, double freq);
 double sqrtick(OSCIL *osc, double freq);
 double pwmtick(OSCIL *osc, double freq, double pwmod);
