@@ -12,13 +12,13 @@ int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        perror("Too few arguments");
+        puts("Too few arguments");
         return 1;
     }
     else if (argc > 2)
     {
-        perror("Too many arguments");
-        return 1;
+        puts("Too many arguments");
+        return 2;
     }
 
     if (psf_init())
@@ -38,7 +38,6 @@ int main(int argc, char *argv[])
     }
 
     char *stype = NULL;
-    stype = "asdf";
     switch (props.samptype)
     {
     case (PSF_SAMP_16):

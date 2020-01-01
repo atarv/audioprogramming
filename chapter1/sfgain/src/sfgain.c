@@ -29,26 +29,28 @@ int main(int argc, char *argv[])
     // Validate arguments
     if (argc < ARG_NARGS)
     {
-        printf("Insufficient arguments\nUsage: sfgain infile outfile modifier");
+        printf("Error: Insufficient arguments\nUsage: sfgain infile outfile "
+               "modifier\n");
         return EXIT_FAILURE;
     }
 
     float gain_mod = strtof(argv[ARG_GAIN_MOD], NULL);
     if (gain_mod < 0.0 || isnan(gain_mod))
     {
-        printf("Gain modifier must be a positive floating point number\n");
+        printf(
+            "Error: Gain modifier must be a positive floating point number\n");
         return EXIT_FAILURE;
     }
     else if (gain_mod == 1.0)
     {
-        printf("Gain modifier has to differ from 1.0 to modify amplitude. "
-               "Exiting...\n");
+        printf("Error: Gain modifier has to differ from 1.0 to modify "
+               "amplitude. Exiting...\n");
         return EXIT_FAILURE;
     }
 
     if (psf_init())
     {
-        printf("Unable to start portsf\n");
+        printf("Error: Unable to start portsf\n");
         return EXIT_FAILURE;
     }
 
@@ -63,8 +65,9 @@ int main(int argc, char *argv[])
     outformat = psf_getFormatExt(argv[ARG_OUTFILE]);
     if (outformat == PSF_FMT_UNKNOWN)
     {
-        printf("Outfile name %s has unknown format\nUse any of .wav, .aiff",
-               argv[ARG_OUTFILE]);
+        printf(
+            "Error: Outfile name %s has unknown format\nUse any of .wav, .aiff",
+            argv[ARG_OUTFILE]);
         error++;
         goto cleanup;
     }
@@ -82,7 +85,7 @@ int main(int argc, char *argv[])
     frame = malloc(props.chans * sizeof(float));
     if (frame == NULL)
     {
-        printf("No memory\n");
+        printf("Error: No memory\n");
         error++;
         goto cleanup;
     }

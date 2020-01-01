@@ -36,6 +36,15 @@ int main(int argc, char *argv[])
 
     printf("sfenv: apply amplitude envelope on a soundfile\n");
 
+    if (argc < ARG_NARGS)
+    {
+        printf("Insufficient arguments\nUsage: sfenv [-n] infile outfile "
+               "breakpointfile\nBreakpoint file contains time value value "
+               "pairs between 0.0 and 1.0 (inclusive)\n-n:\tnormalize "
+               "breakpoint values to 1.0\n");
+        return EXIT_FAILURE;
+    }
+
     // Get command line flags
     for (int i = 1; i < ARG_NARGS; i++)
     {
@@ -55,16 +64,6 @@ int main(int argc, char *argv[])
                 break;
             }
         }
-    }
-
-    // Validate arguments
-    if (argc < ARG_NARGS)
-    {
-        printf("Insufficient arguments\nUsage: sfenv [-n] infile outfile "
-               "breakpointfile\nBreakpoint file contains time value value "
-               "pairs between 0.0 and 1.0 (inclusive)\n-n:\tnormalize "
-               "breakpoint values to 1.0\n");
-        return EXIT_FAILURE;
     }
 
     if (psf_init())
@@ -115,13 +114,13 @@ int main(int argc, char *argv[])
         error++;
         goto cleanup;
     }
-    if (points_count < 2)
+    else if (points_count < 2)
     {
         printf("Minimum of 2 breakpoints required\n");
         error++;
         goto cleanup;
     }
-    if (points[0].time != 0.0)
+    else if (points[0].time != 0.0)
     {
         printf("First breakpoint's time must be 0.0 (got %f)\n",
                points[0].time);
@@ -175,7 +174,6 @@ int main(int argc, char *argv[])
         {
             if (more_points)
             {
-
                 if (width == 0.0)
                     thisamp = right_point.value;
                 else
@@ -221,7 +219,7 @@ int main(int argc, char *argv[])
         error++;
     }
     else
-        printf("Done. %ld sample frames copied to %s\n", total_read,
+        printf("Done. %ld sample frames written to %s\n", total_read,
                argv[ARG_OUTFILE]);
 
 // do all cleanup

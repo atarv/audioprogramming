@@ -90,6 +90,12 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    if (inprops.chans != 1)
+    {
+        printf("Error: input file must be mono\n");
+        return EXIT_FAILURE;
+    }
+
     inprops.samptype = PSF_SAMP_IEEE_FLOAT;
     outformat = psf_getFormatExt(argv[ARG_OUTFILE]);
     if (outformat == PSF_FMT_UNKNOWN)

@@ -3,7 +3,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define BLOCK_SIZE 512
+#define BLOCK_SIZE 4096
 
 enum
 {
@@ -117,7 +117,6 @@ int main(int argc, char const *argv[])
     int update_interval = 0;
     for (unsigned int n = 0; n < LOOP_COUNT; n++)
     {
-
         while (framesread > 0)
         {
             totalread += framesread;
