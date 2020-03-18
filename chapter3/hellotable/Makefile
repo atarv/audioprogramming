@@ -1,7 +1,7 @@
 CXX = g++
-CXXFLAGS =  -g -Wall -Werror -Wextra -pedantic
-INCLUDES = -I./include -I../../TinyAudioLibrary
-LIBS = -lm -L../../TinyAudioLibrary -ltiny -lportaudio
+CXXFLAGS =  -g -Wall -Werror -Wextra -pedantic -std=c++14
+INCLUDES = -I./include
+LIBS = -lm -lportaudio
 SRC = ./src
 
 all:
