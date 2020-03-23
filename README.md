@@ -14,4 +14,6 @@ required parameters, when run without any arguments.
 In chapter 2 programs are compiled with `gcc`, though you could modify the
 Makefiles to use any C-compiler that supports C99.
 
-In chapter 3 programs are compiled with `g++` (C++14 and upwards).
+In chapter 3 programs are compiled with `g++` (C++14 and upwards). You need
+to have [portaudio](http://portaudio.com/) installed as the programs depend
+on it.
