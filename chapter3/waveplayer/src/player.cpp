@@ -4,7 +4,7 @@
 #include <memory>
 #include <portaudio.h>
 
-constexpr size_t NFRAMES = 2048;
+constexpr unsigned NFRAMES = 1024 * 1024;
 
 auto psf_to_pa_sampleformat(psf_stype psf) -> PaSampleFormat
 {
@@ -96,8 +96,7 @@ auto main(int argc, char const *argv[]) -> int
         goto cleanup;
     }
     outputParams.channelCount = props.chans;
-    outputParams.sampleFormat = psf_to_pa_sampleformat(props.samptype);
-    // outputParams.sampleFormat = paInt16;
+    outputParams.sampleFormat = paFloat32;
     outputParams.suggestedLatency =
         Pa_GetDeviceInfo(outputParams.device)->defaultHighOutputLatency;
     outputParams.hostApiSpecificStreamInfo = nullptr;
@@ -116,7 +115,6 @@ auto main(int argc, char const *argv[]) -> int
             goto cleanup;
         }
 
-
         paErr = Pa_StartStream(stream);
         if (paErr != paNoError)
         {
@@ -126,7 +124,6 @@ auto main(int argc, char const *argv[]) -> int
             goto cleanup;
         }
 
-        // TODO: play file
         unsigned totalFramesRead = 0;
         int framesRead = 0;
         const long samples = props.chans * NFRAMES;
@@ -134,11 +131,17 @@ auto main(int argc, char const *argv[]) -> int
         do
         {
             // Read frames from file
-            framesRead = psf_sndReadFloatFrames(
-                inputFileDesc, (float *)sampleBuffer, NFRAMES);
+            framesRead =
+                psf_sndReadFloatFrames(inputFileDesc, sampleBuffer, NFRAMES);
+            if (framesRead <= 0)
+            {
+                std::cerr << "Error: failed to read from input file";
+                ++exitCode;
+                goto cleanup;
+            }
             // Write frames to output stream
-            paErr = Pa_WriteStream(stream, (const void *)sampleBuffer,
-                                   framesRead);
+            paErr =
+                Pa_WriteStream(stream, (const void *)sampleBuffer, framesRead);
             if (paErr != paNoError)
             {
                 std::cerr << "Error: failed to write to output stream\n";
@@ -147,7 +150,8 @@ auto main(int argc, char const *argv[]) -> int
             }
             totalFramesRead += framesRead;
         } while (framesRead > 0);
-            std::cout << "Total frames read: " << totalFramesRead << '\n';
+
+        std::cout << "Total frames read: " << totalFramesRead << '\n';
 
         paErr = Pa_StopStream(stream);
         if (paErr != paNoError)
