@@ -1,41 +1,22 @@
+/**
+ * `player` plays a wav-file through your deafult audio device
+ * Usage: ./player /path/to/file.wav
+ */
 #include "portsf.h"
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <portaudio.h>
 
-constexpr unsigned NFRAMES = 1024 * 1024;
-
-auto psf_to_pa_sampleformat(psf_stype psf) -> PaSampleFormat
-{
-    switch (psf)
-    {
-    case PSF_SAMP_8:
-        return paInt8;
-        break;
-    case PSF_SAMP_16:
-        return paInt16;
-        break;
-    case PSF_SAMP_24:
-        return paInt24;
-        break;
-    case PSF_SAMP_32:
-        return paInt32;
-    case PSF_SAMP_IEEE_FLOAT:
-        return paFloat32;
-        break;
-    default:
-        std::cerr << "Error: invalid sound file format\n";
-        exit(1); // No chance for cleanup...
-        break;
-    }
-}
+// Number of frames in sample buffer
+constexpr unsigned NFRAMES = 2048;
 
 auto main(int argc, char const *argv[]) -> int
 {
-    int exitCode = 0;
-    int paErr = -1;
-    float *sampleBuffer;
+    int exitCode = 0; // 0 for success, positive for error
+    int paErr = -1;   // Negative number signifies erorr with Portaudio
+
+    // Validate arguments
 
     if (argc < 2)
     {
@@ -51,6 +32,8 @@ auto main(int argc, char const *argv[]) -> int
         exit(EXIT_FAILURE);
     }
 
+    // Validate input file
+
     PSF_PROPS props;
     int inputFileDesc = psf_sndOpen(argv[1], &props, 0);
     if (inputFileDesc < 0)
@@ -60,17 +43,13 @@ auto main(int argc, char const *argv[]) -> int
         goto cleanup;
     }
 
-    // DEBUG:
-    std::cout << "chans: " << props.chans << " chformat: " << props.chformat
-              << " srate: " << props.srate << " format: " << props.format
-              << '\n';
-
     if (props.format != PSF_STDWAVE)
     {
         std::cerr << "Error: only .wav-files are supported\n";
         ++exitCode;
         goto cleanup;
     }
+
     if (props.chformat > 2)
     {
         std::cerr << "Error: only stereo and mono files are allowed\n";
@@ -87,6 +66,8 @@ auto main(int argc, char const *argv[]) -> int
         goto cleanup;
     }
 
+    // Setup portaudio
+
     PaStreamParameters outputParams;
     outputParams.device = Pa_GetDefaultOutputDevice();
     if (outputParams.device == paNoDevice)
@@ -102,20 +83,32 @@ auto main(int argc, char const *argv[]) -> int
     outputParams.hostApiSpecificStreamInfo = nullptr;
 
     {
-        PaStream *stream;
+        // Portaudio owns this pointer. It must be freed with  Pa_StartStream
+        // and Pa_CloseStream functions.
+        PaStream *stream_raw;
         paErr =
-            Pa_OpenStream(&stream, nullptr /* no input */, &outputParams,
+            Pa_OpenStream(&stream_raw, nullptr /* no input */, &outputParams,
                           props.srate, NFRAMES, paClipOff, nullptr, nullptr);
         if (paErr != paNoError)
         {
-            // std::cerr << (void*)stream.get() << '\n';
             std::cerr << "Error: failed to open output stream.\n"
                       << Pa_GetErrorText(paErr) << '\n';
             ++exitCode;
             goto cleanup;
         }
+        // Construct a unique pointer for stream. This will automatically handle
+        // proper closing of the stream.
+        std::unique_ptr<PaStream *, std::function<void(PaStream **)>> stream(
+            nullptr, [](PaStream **p) {
+                if (p != nullptr)
+                    if (Pa_StopStream(*p) == paNoError)
+                        if (Pa_CloseStream(*p) == paNoError)
+                            return;
+                std::cerr << "Warning: failed to close stream\n";
+            });
+        stream.reset(&stream_raw); // Change null to real pointer
 
-        paErr = Pa_StartStream(stream);
+        paErr = Pa_StartStream(*stream);
         if (paErr != paNoError)
         {
             std::cerr << "Error: failed to start stream\n"
@@ -124,27 +117,29 @@ auto main(int argc, char const *argv[]) -> int
             goto cleanup;
         }
 
+        // Play audio file through stream
         unsigned totalFramesRead = 0;
         int framesRead = 0;
         const long samples = props.chans * NFRAMES;
-        sampleBuffer = new float[samples];
+        std::unique_ptr<float[]> sampleBuffer(new float[samples]);
         do
         {
             // Read frames from file
-            framesRead =
-                psf_sndReadFloatFrames(inputFileDesc, sampleBuffer, NFRAMES);
-            if (framesRead <= 0)
+            framesRead = psf_sndReadFloatFrames(inputFileDesc,
+                                                sampleBuffer.get(), NFRAMES);
+            if (framesRead < 0)
             {
                 std::cerr << "Error: failed to read from input file";
                 ++exitCode;
                 goto cleanup;
             }
             // Write frames to output stream
-            paErr =
-                Pa_WriteStream(stream, (const void *)sampleBuffer, framesRead);
+            paErr = Pa_WriteStream(*stream, (const void *)sampleBuffer.get(),
+                                   framesRead);
             if (paErr != paNoError)
             {
-                std::cerr << "Error: failed to write to output stream\n";
+                std::cerr << "Error: failed to write to output stream\n"
+                          << Pa_GetErrorText(paErr) << '\n';
                 ++exitCode;
                 goto cleanup;
             }
@@ -152,23 +147,6 @@ auto main(int argc, char const *argv[]) -> int
         } while (framesRead > 0);
 
         std::cout << "Total frames read: " << totalFramesRead << '\n';
-
-        paErr = Pa_StopStream(stream);
-        if (paErr != paNoError)
-        {
-            std::cerr << "Error: failed to stop stream\n";
-            ++exitCode;
-            goto cleanup;
-        }
-
-        paErr = Pa_CloseStream(stream);
-        if (paErr != paNoError)
-        {
-            std::cerr << "Error: failed to close stream\n";
-            ++exitCode;
-            goto cleanup;
-        }
-        delete sampleBuffer;
     }
 
 cleanup:
@@ -176,7 +154,10 @@ cleanup:
         psf_sndClose(inputFileDesc);
     if (paErr == paNoError)
         if (Pa_Terminate() != paNoError)
-            std::cerr << "Error: failed to terminate portaudio\n";
+        {
+            std::cerr << "Error: failed to terminate portaudio\n"
+                      << Pa_GetErrorText(paErr) << '\n';
+        }
     if (psfFailure == 0)
         psf_finish();
     return exitCode;
