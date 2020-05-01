@@ -92,7 +92,7 @@ int main(int argc, char const *argv[])
     size_t oscillator_count = strtoul(argv[ARG_NOSCS], NULL, 10);
     if (oscillator_count == 0)
     {
-        printf("Error: number of oscillators must be positive (was %lu)\n",
+        printf("Error: number of oscillators must be positive (was %zu)\n",
                oscillator_count);
         return EXIT_FAILURE;
     }
@@ -218,7 +218,7 @@ int main(int argc, char const *argv[])
         }
     }
     time_t endtime = clock();
-    printf("Successfully wrote %lu frames to %s in %.3f seconds\n", outframes,
+    printf("Successfully wrote %zu frames to %s in %.3f seconds\n", outframes,
            argv[ARG_OUTFILE], (endtime - starttime) / (double)CLOCKS_PER_SEC);
 
 cleanup:

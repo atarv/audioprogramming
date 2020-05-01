@@ -149,11 +149,10 @@ int main(int argc, char const *argv[])
     // Report PEAK values to user
     if (psf_sndReadPeaks(ofd, peaks, NULL) > 0)
     {
-        double peaktime = 0.0;
         printf("PEAK information:\n");
         for (long i = 0; i < props.chans; i++)
         {
-            peaktime = (double)peaks[i].pos / props.srate;
+            double peaktime = (double)peaks[i].pos / props.srate;
             printf("CH %ld:\t%.1fdB (%.4f) at %.4f secs\n", i + 1,
                    float_to_db(peaks[i].val), peaks[i].val, peaktime);
         }

@@ -7,7 +7,6 @@
  */
 BREAKPOINT *get_breakpoints(FILE *fp, size_t *psize)
 {
-    int got;          // Number of values got from reading a line
     long npoints = 0; // Number of breakpoints
     long size = 64;   // Initial size of breakpoint array
     double last_time = 0.0;
@@ -24,7 +23,7 @@ BREAKPOINT *get_breakpoints(FILE *fp, size_t *psize)
     while (fgets(line, 80, fp))
     {
         // Get values of line in format: time value
-        got = sscanf(line, "%lf%lf", &points[npoints].time,
+        int got = sscanf(line, "%lf%lf", &points[npoints].time,
                      &points[npoints].value);
         if (got < 0) // line empty
             continue;

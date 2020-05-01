@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    printf("Successfully wrote %lu frames to %s\n", outframes,
+    printf("Successfully wrote %zu frames to %s\n", outframes,
            argv[ARG_OUTFILE]);
 
 cleanup:

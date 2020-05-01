@@ -55,11 +55,11 @@ void gtable_free(GTABLE **gtable)
 
 static void normalize_gtable(GTABLE *gtable)
 {
-    double value = 0.0, max_amp = 0.0;
+    double max_amp = 0.0;
     // Find maximum amplitude
     for (size_t i = 0; i < gtable->length; ++i)
     {
-        value = fabs(gtable->table[i]);
+        double value = fabs(gtable->table[i]);
         if (max_amp < value)
             max_amp = value;
     }

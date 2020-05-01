@@ -153,7 +153,6 @@ int main(int argc, char *argv[])
 
     printf("Processing...\n");
 
-    frames_read = psf_sndReadFloatFrames(ifd, inframe, NFRAMES);
     total_read = 0;          // total amount of frames read from input file
     int update_interval = 0; // essentially a loop counter
     // amount of seconds between samples
