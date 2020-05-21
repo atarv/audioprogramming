@@ -5,7 +5,7 @@ LIBS = -L../../libportsf -lm -lportaudio -lportsf
 SRC = ./src
 
 all:
-	$(CXX) $(CXXFLAGS) $(SRC)/player.cpp $(LIBS) $(INCLUDES) -o player
+	$(CXX) $(CXXFLAGS) $(SRC)/helloring.cpp $(LIBS) $(INCLUDES) -o helloring
 
 clean:
-	rm player
+	rm helloring

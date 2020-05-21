@@ -24,10 +24,10 @@ enum
  */
 double sample_peak(float *buf, size_t blocksize)
 {
-    double absval, peak = 0.0;
+    double peak = 0.0;
     for (size_t i = 0; i < blocksize; i++)
     {
-        absval = fabs(buf[i]);
+        double absval = fabs(buf[i]);
         peak = MAX(peak, absval);
     }
     return peak;

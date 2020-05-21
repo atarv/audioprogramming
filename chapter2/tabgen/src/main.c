@@ -199,7 +199,7 @@ int main(int argc, char const *argv[])
         }
     }
     time_t endtime = clock();
-    printf("Successfully wrote %lu frames to %s in %.3f seconds\n", outframes,
+    printf("Successfully wrote %zu frames to %s in %.3f seconds\n", outframes,
            argv[ARG_OUTFILE], (endtime - starttime) / (double)CLOCKS_PER_SEC);
 
 cleanup:
