@@ -17,3 +17,6 @@ Makefiles to use any C-compiler that supports C99.
 In chapter 3 programs are compiled with `g++` (C++14 and upwards). You need
 to have [portaudio](http://portaudio.com/) installed as the programs depend
 on it.
+
+Chapter 6 is also in C++ and the programs depend on
+[libsndfile](http://www.mega-nerd.com/libsndfile/).
