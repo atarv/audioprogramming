@@ -21,7 +21,7 @@ void usage()
         R"(interposc - linear, cubic or truncating table lookup oscillator
 
 SYNOPSIS
-    ./interposc [OPTION] outfile frequency nharmonics
+    ./interposc [OPTION] outfile duration frequency nharmonics
 
 OPTIONS:
     -a [0.0-1.0]
@@ -128,10 +128,7 @@ class Wavetable
         }
         }
     }
-    float operator[](const std::size_t idx) const
-    {
-        return table.at(idx);
-    } // FIXME: change to regular access
+    float operator[](const std::size_t idx) const { return table[idx]; }
 };
 
 class Oscillator
@@ -308,7 +305,7 @@ auto main(int argc, char const *argv[]) -> int
             abort();
         }
 
-    if (argc - optind != 3) // Check argument count
+    if (argc - optind != 4) // Check argument count
     {
         std::cerr << "Error: invalid number of arguments\n";
         usage();
@@ -318,6 +315,13 @@ auto main(int argc, char const *argv[]) -> int
     // Required (non-option) arguments
 
     outFileName = argv[optind++];
+
+    float duration = strtod(argv[optind++], nullptr);
+    if (isnanf(duration) || duration < 0)
+    {
+        std::cerr << "Error: duration must be non-negative\n";
+        return EXIT_FAILURE;
+    }
 
     float frequency = strtod(argv[optind++], nullptr);
     if (isnanf(frequency) || frequency < 0)
@@ -355,9 +359,9 @@ auto main(int argc, char const *argv[]) -> int
 
     // Process
 
-    auto framesWritten = 0;
-    // TODO: used specified duration
-    for (int i = 0; i < 1000; ++i)
+    size_t totalFramesWritten = 0;
+    size_t framesRemaining = SAMPLE_RATE * duration;
+    while (framesRemaining > 0)
     {
         switch (tableLookup)
         {
@@ -371,9 +375,13 @@ auto main(int argc, char const *argv[]) -> int
             osc.fillCubicInterpolation(outBuf.begin(), outBuf.end());
             break;
         }
-        framesWritten += sf_write_float(outFile, outBuf.data(), outBuf.size());
+        auto framesWritten = sf_write_float(
+            outFile, outBuf.data(), std::min(outBuf.size(), framesRemaining));
+        totalFramesWritten += framesWritten;
+        framesRemaining -= framesWritten;
     }
-    std::cout << framesWritten << "frames written to " << outFileName << "\n";
+    std::cout << totalFramesWritten << "frames written to " << outFileName
+              << "\n";
 
     // Cleanup
 
